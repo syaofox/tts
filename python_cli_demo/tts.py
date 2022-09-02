@@ -1,5 +1,6 @@
 # 来源 https://github.com/OS984/DiscordBotBackend/blob/3b06b8be39e4dbc07722b0afefeee4c18c136102/NeuralTTS.py
 # A completely innocent attempt to borrow proprietary Microsoft technology for a much better TTS experience
+from unittest import result
 import requests
 import websockets
 import asyncio
@@ -8,9 +9,13 @@ import time
 import re
 import uuid
 import argparse
-
-
 '''命令行参数解析'''
+
+
+def cut(obj, sec):
+    return [obj[i:i + sec] for i in range(0, len(obj), sec)]
+
+
 def parseArgs():
     parser = argparse.ArgumentParser(description='text2speech')
     parser.add_argument('--input', dest='input', help='SSML(语音合成标记语言)的路径', type=str, required=True)
@@ -18,10 +23,12 @@ def parseArgs():
     args = parser.parse_args()
     return args
 
+
 # Fix the time to match Americanisms
 def hr_cr(hr):
     corrected = (hr - 1) % 24
     return str(corrected)
+
 
 # Add zeros in the right places i.e 22:1:5 -> 22:01:05
 def fr(input_string):
@@ -32,10 +39,12 @@ def fr(input_string):
         i -= 1
     return corr + input_string
 
+
 # Generate X-Timestamp all correctly formatted
 def getXTime():
     now = datetime.now()
     return fr(str(now.year)) + '-' + fr(str(now.month)) + '-' + fr(str(now.day)) + 'T' + fr(hr_cr(int(now.hour))) + ':' + fr(str(now.minute)) + ':' + fr(str(now.second)) + '.' + str(now.microsecond)[:3] + 'Z'
+
 
 # Async function for actually communicating with the websocket
 async def transferMsTTSData(SSML_text, outputPath):
@@ -74,7 +83,7 @@ async def transferMsTTSData(SSML_text, outputPath):
         # Checks for close connection message
         end_resp_pat = re.compile('Path:turn.end')
         audio_stream = b''
-        while(True):
+        while (True):
             response = await websocket.recv()
             print('receiving...')
             # Make sure the message isn't telling us to stop
@@ -97,15 +106,56 @@ async def transferMsTTSData(SSML_text, outputPath):
 async def mainSeq(SSML_text, outputPath):
     await transferMsTTSData(SSML_text, outputPath)
 
+
 def get_SSML(path):
-    with open(path,'r',encoding='utf-8') as f:
-        return f.read()
+    with open(path, 'r', encoding='utf-8') as f:
+        head = '''
+        <!--ID=B7267351-473F-409D-9765-754A8EBCDE05;Version=1|{"VoiceNameToIdMapItems":[{"Id":"16cf511c-1865-404e-b2da-160362b7dff6","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, XiaochenNeural)","ShortName":"zh-CN-XiaochenNeural","Locale":"zh-CN","VoiceType":"StandardVoice"}]}-->
+<!--ID=FCB40C2B-1F9F-4C26-B1A1-CF8E67BE07D1;Version=1|{"Files":{}}-->
+<!--ID=5B95B1CC-2C7B-494F-B746-CF22A0E779B7;Version=1|{"Locales":{"zh-CN":{"AutoApplyCustomLexiconFiles":[{}]}}}-->
+<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="+7%" pitch="+4%" volume="+20.00%">
+        '''
+        content = f.read()
+
+        # content_list = cut(content, 10)
+        # content_list = cut(content, 10)
+        ## 去掉空行，按行分割
+
+        # content_list = filter(None, content.split('\n'))
+
+        result_list = []
+        content_list = content.split('\n')
+
+        line_result = ''
+        idx = 0
+        for line in content_list:
+            idx += 1
+
+            if line == '' or line is None:
+                continue
+            if line.startswith('－'):
+                continue
+
+            line_result = line_result + '\n' + line + '\n'
+
+            if (len(line_result) + len(line) >= 2000):
+                result_list.append(f'{head}{line_result}</prosody></voice></speak>')
+                line_result = ''
+
+        return result_list
+
 
 if __name__ == "__main__":
     args = parseArgs()
-    SSML_text = get_SSML(args.input)
-    output_path = args.output if args.output else 'output_'+ str(int(time.time()*1000))
-    asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+    SSML_text_list = get_SSML(args.input)
+    for idx, SSML_text in enumerate(SSML_text_list):
+        output_path = args.output if args.output else 'output_' + str(idx)
+        asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
     print('completed')
+
+    # SSML_text = get_SSML(args.input)
+    # output_path = args.output if args.output else 'output_' + str(int(time.time() * 1000))
+    # asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+    # print('completed')
     # python tts.py --input SSML.xml
     # python tts.py --input SSML.xml --output 保存文件名
