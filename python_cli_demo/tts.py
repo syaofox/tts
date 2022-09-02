@@ -10,6 +10,7 @@ from datetime import datetime
 import time
 import re
 import uuid
+import fire
 import argparse
 '''命令行参数解析'''
 
@@ -112,11 +113,15 @@ async def mainSeq(SSML_text, outputPath):
 def get_SSML(path):
     with open(path, 'r', encoding='utf-8') as f:
         head = '''
-        <!--ID=B7267351-473F-409D-9765-754A8EBCDE05;Version=1|{"VoiceNameToIdMapItems":[{"Id":"16cf511c-1865-404e-b2da-160362b7dff6","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, XiaochenNeural)","ShortName":"zh-CN-XiaochenNeural","Locale":"zh-CN","VoiceType":"StandardVoice"}]}-->
-<!--ID=FCB40C2B-1F9F-4C26-B1A1-CF8E67BE07D1;Version=1|{"Files":{}}-->
-<!--ID=5B95B1CC-2C7B-494F-B746-CF22A0E779B7;Version=1|{"Locales":{"zh-CN":{"AutoApplyCustomLexiconFiles":[{}]}}}-->
-<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="+7%" pitch="+4%" volume="+20.00%">
+        <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="7%" pitch="0%">
         '''
+
+        #         head = '''
+        #         <!--ID=B7267351-473F-409D-9765-754A8EBCDE05;Version=1|{"VoiceNameToIdMapItems":[{"Id":"16cf511c-1865-404e-b2da-160362b7dff6","Name":"Microsoft Server Speech Text to Speech Voice (zh-CN, XiaochenNeural)","ShortName":"zh-CN-XiaochenNeural","Locale":"zh-CN","VoiceType":"StandardVoice"}]}-->
+        # <!--ID=FCB40C2B-1F9F-4C26-B1A1-CF8E67BE07D1;Version=1|{"Files":{}}-->
+        # <!--ID=5B95B1CC-2C7B-494F-B746-CF22A0E779B7;Version=1|{"Locales":{"zh-CN":{"AutoApplyCustomLexiconFiles":[{}]}}}-->
+        # <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="+4%" pitch="+0%" volume="+20.00%">
+        #         '''
         content = f.read()
 
         # content_list = cut(content, 10)
@@ -145,15 +150,15 @@ def get_SSML(path):
                 result_list.append(f'{head}{line_result}</prosody></voice></speak>')
                 line_result = ''
 
+        result_list.append(f'{head}{line_result}</prosody></voice></speak>')
         return result_list
 
 
-if __name__ == "__main__":
-    args = parseArgs()
-    SSML_text_list = get_SSML(args.input)
-    print(os.path.dirname(args.input))
-    data_dir = os.path.dirname(args.input)
-    data_name = os.path.basename(args.input)
+def run(input):
+    SSML_text_list = get_SSML(input)
+    print(os.path.dirname(input))
+    data_dir = os.path.dirname(input)
+    data_name = os.path.basename(input)
     datafile = os.path.join(data_dir, "data.txt")
     print(data_name)
 
@@ -167,6 +172,7 @@ if __name__ == "__main__":
             f.write(f"file \'{output_path}.mp3\'\n")
 
             asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+            time.sleep(1)
 
     outfile = output_path = os.path.join(data_dir, f'{data_name}')
 
@@ -178,6 +184,39 @@ if __name__ == "__main__":
             os.remove(xfname)
 
     print('completed')
+
+
+if __name__ == "__main__":
+    fire.Fire(run)
+    # args = parseArgs()
+    # SSML_text_list = get_SSML(args.input)
+    # print(os.path.dirname(args.input))
+    # data_dir = os.path.dirname(args.input)
+    # data_name = os.path.basename(args.input)
+    # datafile = os.path.join(data_dir, "data.txt")
+    # print(data_name)
+
+    # tempfiles = []
+    # tempfiles.append(datafile)
+
+    # with open(datafile, "w") as f:
+    #     for idx, SSML_text in enumerate(SSML_text_list):
+    #         output_path = os.path.join(data_dir, f'{data_name}_{str(idx)}')
+    #         tempfiles.append(f'{output_path}.mp3')
+    #         f.write(f"file \'{output_path}.mp3\'\n")
+
+    #         asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+
+    # outfile = output_path = os.path.join(data_dir, f'{data_name}')
+
+    # strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
+    # subprocess.run(strcmd, shell=True)
+
+    # for xfname in tempfiles:
+    #     if os.path.exists(xfname):
+    #         os.remove(xfname)
+
+    # print('completed')
 
     # SSML_text = get_SSML(args.input)
     # output_path = args.output if args.output else 'output_' + str(int(time.time() * 1000))
