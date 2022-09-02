@@ -1,5 +1,7 @@
 # 来源 https://github.com/OS984/DiscordBotBackend/blob/3b06b8be39e4dbc07722b0afefeee4c18c136102/NeuralTTS.py
 # A completely innocent attempt to borrow proprietary Microsoft technology for a much better TTS experience
+import os
+import subprocess
 from unittest import result
 import requests
 import websockets
@@ -128,6 +130,7 @@ def get_SSML(path):
 
         line_result = ''
         idx = 0
+
         for line in content_list:
             idx += 1
 
@@ -148,9 +151,32 @@ def get_SSML(path):
 if __name__ == "__main__":
     args = parseArgs()
     SSML_text_list = get_SSML(args.input)
-    for idx, SSML_text in enumerate(SSML_text_list):
-        output_path = args.output if args.output else 'output_' + str(idx)
-        asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+    print(os.path.dirname(args.input))
+    data_dir = os.path.dirname(args.input)
+    data_name = os.path.basename(args.input)
+    datafile = os.path.join(data_dir, "data.txt")
+    print(data_name)
+
+    tempfiles = []
+    tempfiles.append(datafile)
+
+    with open(datafile, "w") as f:
+        for idx, SSML_text in enumerate(SSML_text_list):
+            output_path = os.path.join(data_dir, f'{data_name}_{str(idx)}')
+            tempfiles.append(f'{output_path}.mp3')
+            f.write(f"file \'{output_path}.mp3\'\n")
+
+            asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
+
+    outfile = output_path = os.path.join(data_dir, f'{data_name}')
+
+    strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
+    subprocess.run(strcmd, shell=True)
+
+    for xfname in tempfiles:
+        if os.path.exists(xfname):
+            os.remove(xfname)
+
     print('completed')
 
     # SSML_text = get_SSML(args.input)
