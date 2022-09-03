@@ -146,7 +146,7 @@ def get_SSML(path):
 
             line_result = line_result + '\n' + line + '\n'
 
-            if (len(line_result) + len(line) >= 2000):
+            if (len(line_result) + len(line) >= 500):
                 result_list.append(f'{head}{line_result}</prosody></voice></speak>')
                 line_result = ''
 
