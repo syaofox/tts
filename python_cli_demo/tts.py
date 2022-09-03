@@ -176,12 +176,12 @@ def run(input):
 
     outfile = output_path = os.path.join(data_dir, f'{data_name}')
 
-    # strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
-    # subprocess.run(strcmd, shell=True)
+    strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
+    subprocess.run(strcmd, shell=True)
 
-    # for xfname in tempfiles:
-    #     if os.path.exists(xfname):
-    #         os.remove(xfname)
+    for xfname in tempfiles:
+        if os.path.exists(xfname):
+            os.remove(xfname)
 
     print('completed')
 
