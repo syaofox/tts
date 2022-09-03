@@ -72,7 +72,7 @@ async def transferMsTTSData(SSML_text, outputPath):
             getXTime() + '\r\nContent-Type: application/json\r\n\r\n' + payload_1
         await websocket.send(message_1)
 
-        payload_2 = '{"synthesis":{"audio":{"metadataOptions":{"sentenceBoundaryEnabled":false,"wordBoundaryEnabled":false},"outputFormat":"audio-16khz-32kbitrate-mono-mp3"}}}'
+        payload_2 = '{"synthesis":{"audio":{"metadataOptions":{"sentenceBoundaryEnabled":false,"wordBoundaryEnabled":false},"outputFormat":"audio-24khz-96kbitrate-mono-mp3"}}}'
         message_2 = 'Path : synthesis.context\r\nX-RequestId: ' + req_id + '\r\nX-Timestamp: ' + \
             getXTime() + '\r\nContent-Type: application/json\r\n\r\n' + payload_2
         await websocket.send(message_2)
@@ -176,12 +176,12 @@ def run(input):
 
     outfile = output_path = os.path.join(data_dir, f'{data_name}')
 
-    strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
-    subprocess.run(strcmd, shell=True)
+    # strcmd = f'ffmpeg -f concat -safe 0 -i "{datafile}" -c copy "{outfile}.mp3"'
+    # subprocess.run(strcmd, shell=True)
 
-    for xfname in tempfiles:
-        if os.path.exists(xfname):
-            os.remove(xfname)
+    # for xfname in tempfiles:
+    #     if os.path.exists(xfname):
+    #         os.remove(xfname)
 
     print('completed')
 
