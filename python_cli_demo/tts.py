@@ -73,6 +73,8 @@ async def transferMsTTSData(SSML_text, outputPath):
         await websocket.send(message_1)
 
         payload_2 = '{"synthesis":{"audio":{"metadataOptions":{"sentenceBoundaryEnabled":false,"wordBoundaryEnabled":false},"outputFormat":"audio-24khz-96kbitrate-mono-mp3"}}}'
+        # payload_2 = '{"synthesis":{"audio":{"metadataOptions":{"sentenceBoundaryEnabled":false,"wordBoundaryEnabled":false},"outputFormat":"audio-16khz-32kbitrate-mono-mp3"}}}'
+
         message_2 = 'Path : synthesis.context\r\nX-RequestId: ' + req_id + '\r\nX-Timestamp: ' + \
             getXTime() + '\r\nContent-Type: application/json\r\n\r\n' + payload_2
         await websocket.send(message_2)
@@ -146,7 +148,7 @@ def get_SSML(path):
 
             line_result = line_result + '\n' + line + '\n'
 
-            if (len(line_result) + len(line) >= 500):
+            if (len(line_result) + len(line) >= 800):
                 result_list.append(f'{head}{line_result}</prosody></voice></speak>')
                 line_result = ''
 
@@ -165,14 +167,18 @@ def run(input):
     tempfiles = []
     tempfiles.append(datafile)
 
-    with open(datafile, "w") as f:
+    with open(datafile, "a+") as f:
         for idx, SSML_text in enumerate(SSML_text_list):
             output_path = os.path.join(data_dir, f'{data_name}_{str(idx)}')
+
             tempfiles.append(f'{output_path}.mp3')
+            if os.path.exists(output_path + '.mp3'):
+                print(f'跳过{output_path}')
+                continue
             f.write(f"file \'{output_path}.mp3\'\n")
 
             asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
-            time.sleep(1)
+            time.sleep(10)
 
     outfile = output_path = os.path.join(data_dir, f'{data_name}')
 
