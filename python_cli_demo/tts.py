@@ -11,6 +11,7 @@ import time
 import re
 import uuid
 import fire
+import pickle
 import argparse
 '''命令行参数解析'''
 
@@ -66,7 +67,7 @@ async def transferMsTTSData(SSML_text, outputPath):
     #     Auth_Token + "&X-ConnectionId=" + req_id
     # 目前该接口没有认证可能很快失效
     endpoint2 = f"wss://eastus.api.speech.microsoft.com/cognitiveservices/websocket/v1?TrafficType=AzureDemo&Authorization=bearer%20undefined&X-ConnectionId={req_id}"
-    async with websockets.connect(endpoint2) as websocket:
+    async with websockets.connect(endpoint2, extra_headers={'Origin': 'https://azure.microsoft.com'}) as websocket:
         payload_1 = '{"context":{"system":{"name":"SpeechSDK","version":"1.12.1-rc.1","build":"JavaScript","lang":"JavaScript","os":{"platform":"Browser/Linux x86_64","name":"Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0","version":"5.0 (X11)"}}}}'
         message_1 = 'Path : speech.config\r\nX-RequestId: ' + req_id + '\r\nX-Timestamp: ' + \
             getXTime() + '\r\nContent-Type: application/json\r\n\r\n' + payload_1
@@ -157,15 +158,27 @@ def get_SSML(path):
 
 
 def run(input):
-    SSML_text_list = get_SSML(input)
     print(os.path.dirname(input))
     data_dir = os.path.dirname(input)
     data_name = os.path.basename(input)
     datafile = os.path.join(data_dir, "data.txt")
     print(data_name)
 
+    pklfile = os.path.join(data_dir, "gj.pkl")
+
+    SSML_text_list = []
+    if os.path.exists(pklfile):
+        with open(pklfile, 'rb') as f:
+
+            SSML_text_list = pickle.load(f)
+    else:
+        SSML_text_list = get_SSML(input)
+        with open(pklfile, 'wb') as f:
+            pickle.dump(SSML_text_list, f)
+
     tempfiles = []
     tempfiles.append(datafile)
+    tempfiles.append(pklfile)
 
     with open(datafile, "a+") as f:
         for idx, SSML_text in enumerate(SSML_text_list):
