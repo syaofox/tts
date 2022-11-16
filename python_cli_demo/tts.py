@@ -180,15 +180,16 @@ def run(input):
     tempfiles.append(datafile)
     tempfiles.append(pklfile)
 
-    with open(datafile, "a+") as f:
+    with open(datafile, "w+") as f:
         for idx, SSML_text in enumerate(SSML_text_list):
             output_path = os.path.join(data_dir, f'{data_name}_{str(idx)}')
 
             tempfiles.append(f'{output_path}.mp3')
+            f.write(f"file \'{output_path}.mp3\'\n")
             if os.path.exists(output_path + '.mp3'):
                 print(f'跳过{output_path}')
                 continue
-            f.write(f"file \'{output_path}.mp3\'\n")
+            # f.write(f"file \'{output_path}.mp3\'\n")
 
             asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
             time.sleep(10)
