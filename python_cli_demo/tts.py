@@ -116,7 +116,7 @@ async def mainSeq(SSML_text, outputPath):
 def get_SSML(path):
     with open(path, 'r', encoding='utf-8') as f:
         head = '''
-        <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="7%" pitch="0%">
+        <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="7%" pitch="3%">
         '''
 
         #         head = '''
