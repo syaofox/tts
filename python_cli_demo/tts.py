@@ -116,7 +116,7 @@ async def mainSeq(SSML_text, outputPath):
 def get_SSML(path):
     with open(path, 'r', encoding='utf-8') as f:
         head = '''
-        <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-XiaochenNeural"><prosody rate="7%" pitch="3%">
+        <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US"><voice name="zh-CN-YunfengNeural">
         '''
 
         #         head = '''
@@ -150,10 +150,10 @@ def get_SSML(path):
             line_result = line_result + '\n' + line + '\n'
 
             if (len(line_result) + len(line) >= 800):
-                result_list.append(f'{head}{line_result}</prosody></voice></speak>')
+                result_list.append(f'{head}{line_result}</voice></speak>')
                 line_result = ''
 
-        result_list.append(f'{head}{line_result}</prosody></voice></speak>')
+        result_list.append(f'{head}{line_result}</voice></speak>')
         return result_list
 
 
@@ -180,7 +180,7 @@ def run(input):
     tempfiles.append(datafile)
     tempfiles.append(pklfile)
 
-    with open(datafile, "w+") as f:
+    with open(datafile, "w+",encoding='utf-8') as f:
         for idx, SSML_text in enumerate(SSML_text_list):
             output_path = os.path.join(data_dir, f'{data_name}_{str(idx)}')
 
@@ -192,7 +192,7 @@ def run(input):
             # f.write(f"file \'{output_path}.mp3\'\n")
 
             asyncio.get_event_loop().run_until_complete(mainSeq(SSML_text, output_path))
-            time.sleep(10)
+            # time.sleep(10)
 
     outfile = output_path = os.path.join(data_dir, f'{data_name}')
 
@@ -201,7 +201,8 @@ def run(input):
 
     for xfname in tempfiles:
         if os.path.exists(xfname):
-            os.remove(xfname)
+            print(xfname)
+            # os.remove(xfname)
 
     print('completed')
 
